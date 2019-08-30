@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Desarrollo de videojuegos</title>
+    <style>
+      body {
+        margin: 0;
+      }
+      .flex {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 99vh;
+      }
+      .small-shadow {
+        box-shadow: 0 2px 6px 0 hsla(0, 0%, 0%, 0.2);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="flex">
+      <canvas
+        id="game-area"
+        width="1440"
+        height="788"
+        tabindex="0"
+        class="small-shadow"
+      ></canvas>
+    </main>
+    <script src="./src/index.ts"></script>
+  </body>
+</html>

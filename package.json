@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "build": "parcel build index.html",
+    "develop": "parcel index.html -p 8000"
+  },
+  "devDependencies": {
+    "parcel-bundler": "^1.12.3",
+    "typescript": "^3.5.3"
+  }
+}
