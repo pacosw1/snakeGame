@@ -1,32 +1,55 @@
 import GameObject from "./GameObject";
+import Time from "./Time";
 import { width, heigth } from "./setup";
 
 class Square extends GameObject {
+  //Personaje
   protected size;
   direction;
   xSign;
-  speed = 10;
+  speed = 5000;
+  color;
+  colors;
+  colorSign;
+  colorDir;
   constructor(x, y, size) {
     super();
     this.size = size;
-    this.direction = true;
     this.xSign = 1;
-    this.coordX = 0;
+    this.coordX = 10;
+    this.color = 1;
+    this.colorDir = true;
+    this.colorSign = 2;
     this.coordY = y;
+    this.colors = {
+      1: "#ffe6e6",
+      2: "#ffcccc",
+      3: "#ffb3b3",
+      4: "#ff9999",
+      5: "#ff8080",
+      6: "#ff4d4d",
+      7: "ff3333"
+    };
+  }
+  public update() {
+    if (this.coordX >= width - this.size) {
+      this.xSign = -1;
+    } else if (this.coordX <= 0) {
+      this.xSign = 1;
+    }
+    if (this.color == 5 || this.color == 1) this.colorDir = !this.colorDir;
+
+    if (Time.deltaTime >= 0.015) this.color += this.colorDir ? -1 : 1;
+
+    this.coordX += this.speed * Time.deltaTime * this.xSign;
+    console.log(this.color);
   }
   public render() {
-    this.coordX += 10 * this.xSign;
     const context = GameObject.context;
     context.clearRect(0, 0, 1440, 778);
     context.beginPath();
-    if (this.coordX == width - this.size || this.coordX == 0) {
-      // alert(this.direction);
-      this.direction = !this.direction;
-      this.xSign = this.direction ? 1 : -1;
-    }
-
     context.rect(this.coordX, this.coordY, this.size, this.size);
-    context.fillStyle = "#0074D9";
+    context.fillStyle = this.colors[this.color];
     context.fill();
   }
 }

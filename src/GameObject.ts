@@ -3,6 +3,7 @@ abstract class GameObject {
   protected coordX: number;
   protected coordY: number;
   public abstract render();
+  public abstract update();
 
   public static getCanvasWidth() {
     return GameObject.context.canvas.width;

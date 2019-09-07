@@ -117,87 +117,244 @@ parcelRequire = (function (modules, cache, entry, globalName) {
   }
 
   return newRequire;
-})({"src/Engine.ts":[function(require,module,exports) {
+})({"src/GameContext.ts":[function(require,module,exports) {
 "use strict";
 
 exports.__esModule = true;
 
-var Engine =
+var GameContext =
 /** @class */
 function () {
-  function Engine(objects) {
+  function GameContext() {}
+
+  GameContext.scale = 30;
+  GameContext.width = 1400;
+  GameContext.height = 1920;
+  GameContext.context = null;
+  return GameContext;
+}();
+
+exports["default"] = GameContext;
+},{}],"src/Snake.ts":[function(require,module,exports) {
+"use strict";
+
+var __importDefault = this && this.__importDefault || function (mod) {
+  return mod && mod.__esModule ? mod : {
+    "default": mod
+  };
+};
+
+exports.__esModule = true;
+
+var GameContext_1 = __importDefault(require("./GameContext"));
+
+var Snake =
+/** @class */
+function () {
+  function Snake() {
     var _this = this;
 
-    this.tick = function () {
-      // Time.update();
-      for (var i = 0; i < _this.gameObjects.length; i++) {
-        requestAnimationFrame(_this.tick);
+    this.position = [1, 0];
+    this.direction = [1, 0];
+    this.color = "cyan";
+    this.length = 4; // private direccion = ;
+
+    this.path = [{
+      x: 2,
+      y: 0
+    }, {
+      x: 2,
+      y: 0
+    }, {
+      x: 2,
+      y: 0
+    }, {
+      x: 2,
+      y: 0
+    }, {
+      x: 2,
+      y: 0
+    }, {
+      x: 2,
+      y: 0
+    }];
+
+    this.update = function () {
+      var context = GameContext_1["default"].context,
+          scale = GameContext_1["default"].scale;
+      var _a = _this,
+          position = _a.position,
+          path = _a.path,
+          direction = _a.direction;
+      var _b = context.canvas,
+          height = _b.height,
+          width = _b.width;
+
+      if (position[0] > width + -scale) {
+        position[0] = 0;
+      } else if (position[0] < 0) {
+        position[0] = width - scale;
+      } else if (position[1] < 0) {
+        position[1] = height - scale;
+      } else if (position[1] > height) {
+        position[1] = 0;
+      } else {
+        position[0] += direction[0] * scale;
+        position[1] += direction[1] * scale;
+      }
+
+      for (var i = 0; i < path.length; i++) {
+        if (i + 1 < path.length) path[i] = path[i + 1];
+
+        if (i == path.length - 1) {
+          path[i] = {
+            x: position[0],
+            y: position[1]
+          };
+        }
+
+        if (path[i + 1]) path[i] = path[i + 1];
       }
     };
 
-    this.gameObjects = objects.slice();
+    this.render = function () {
+      var context = GameContext_1["default"].context;
+      var scale = GameContext_1["default"].scale;
+      var _a = _this.position,
+          x = _a[0],
+          y = _a[1];
+      context.save();
+      context.beginPath();
+      context.fillStyle = _this.color;
+      context.fillRect(x, y, scale, scale);
+
+      for (var i = 0; i < _this.path.length; i++) {
+        // if (this.path[i + 1]) this.path[i] = this.path[i + 1];
+        context.fillRect(_this.path[i].x, _this.path[i].y, scale, scale);
+      }
+
+      context.closePath();
+      context.restore();
+    };
   }
 
-  Engine.prototype.start = function () {
-    requestAnimationFrame(this.tick);
+  Snake.prototype.setPosition = function (x, y) {
+    this.position[0] = x;
+    this.position[1] = y;
   };
 
-  Engine.prototype.kill = function () {};
+  Snake.prototype.addTail = function () {
+    this.path.push({
+      x: 0,
+      y: 0
+    });
+  };
+
+  Snake.prototype.getPosition = function () {
+    return {
+      x: this.position[0],
+      y: this.position[1]
+    };
+  };
+
+  Snake.prototype.setDirection = function (directionObject) {
+    if (directionObject.x == 0) this.direction[0] = directionObject.x;
+    if (directionObject.y == 0) this.direction[1] = directionObject.y;
+  };
+
+  return Snake;
+}();
+
+exports["default"] = Snake;
+},{"./GameContext":"src/GameContext.ts"}],"src/Engine.ts":[function(require,module,exports) {
+"use strict";
+
+var __importDefault = this && this.__importDefault || function (mod) {
+  return mod && mod.__esModule ? mod : {
+    "default": mod
+  };
+};
+
+exports.__esModule = true;
+
+var GameContext_1 = __importDefault(require("./GameContext"));
+
+var Snake_1 = __importDefault(require("./Snake"));
+
+var Engine =
+/** @class */
+function () {
+  function Engine() {
+    var _this = this;
+
+    this.framerate = 1000 / 10;
+    this.player = null;
+    this.directionTable = {
+      d: {
+        x: 1,
+        y: 0
+      },
+      w: {
+        x: 0,
+        y: -1
+      },
+      a: {
+        x: -1,
+        y: 0
+      },
+      s: {
+        x: 0,
+        y: 1
+      }
+    };
+
+    this.start = function () {
+      _this.init();
+
+      setInterval(_this.tick, _this.framerate);
+    };
+
+    this.eventListener = function (event) {
+      var direction = _this.directionTable[event.key];
+
+      _this.player.setDirection(direction);
+    };
+
+    this.clearScreen = function () {
+      var context = GameContext_1["default"].context;
+      var canvas = context.canvas;
+      var width = canvas.width;
+      var height = canvas.height;
+      context.save();
+      context.beginPath();
+      context.fillStyle = "green";
+      context.strokeStyle = "white";
+      context.lineWidth = 5;
+      context.strokeRect(10, 10, 100, 100);
+      context.fillRect(0, 0, width, height);
+      context.closePath();
+      context.restore();
+    };
+
+    this.init = function () {
+      _this.player = new Snake_1["default"]();
+    };
+
+    this.tick = function () {
+      _this.clearScreen();
+
+      _this.player.render();
+
+      _this.player.update();
+    };
+  }
 
   return Engine;
 }();
 
 exports["default"] = Engine;
-},{}],"src/GameObject.ts":[function(require,module,exports) {
+},{"./GameContext":"src/GameContext.ts","./Snake":"src/Snake.ts"}],"src/index.ts":[function(require,module,exports) {
 "use strict";
-
-exports.__esModule = true;
-
-var GameObject =
-/** @class */
-function () {
-  function GameObject() {}
-
-  GameObject.getCanvasWidth = function () {
-    return GameObject.context.canvas.width;
-  };
-
-  GameObject.getCanvasHeight = function () {
-    return GameObject.context.canvas.height;
-  };
-
-  return GameObject;
-}();
-
-exports["default"] = GameObject;
-},{}],"src/Circle.ts":[function(require,module,exports) {
-"use strict";
-
-var __extends = this && this.__extends || function () {
-  var _extendStatics = function extendStatics(d, b) {
-    _extendStatics = Object.setPrototypeOf || {
-      __proto__: []
-    } instanceof Array && function (d, b) {
-      d.__proto__ = b;
-    } || function (d, b) {
-      for (var p in b) {
-        if (b.hasOwnProperty(p)) d[p] = b[p];
-      }
-    };
-
-    return _extendStatics(d, b);
-  };
-
-  return function (d, b) {
-    _extendStatics(d, b);
-
-    function __() {
-      this.constructor = d;
-    }
-
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-  };
-}();
 
 var __importDefault = this && this.__importDefault || function (mod) {
   return mod && mod.__esModule ? mod : {
@@ -207,130 +364,18 @@ var __importDefault = this && this.__importDefault || function (mod) {
 
 exports.__esModule = true;
 
-var GameObject_1 = __importDefault(require("./GameObject"));
+var GameContext_1 = __importDefault(require("./GameContext"));
 
-var Circle =
-/** @class */
-function (_super) {
-  __extends(Circle, _super);
+var Engine_1 = __importDefault(require("./Engine"));
 
-  function Circle(x, y, size) {
-    var _this = _super.call(this) || this;
-
-    _this.size = size;
-    _this.coordX = x;
-    _this.coordY = y;
-    return _this;
-  }
-
-  Circle.prototype.render = function () {
-    var context = GameObject_1["default"].context;
-    context.ellipse(this.coordX, this.coordY, this.size, this.size, 0, 0, Math.PI * 2);
-    context.fillStyle = "#0074D9";
-    context.fill();
-  };
-
-  return Circle;
-}(GameObject_1["default"]);
-
-exports["default"] = Circle;
-},{"./GameObject":"src/GameObject.ts"}],"src/setup.js":[function(require,module,exports) {
-exports.width = 1440;
-exports.heigth = 750;
-},{}],"src/Square.ts":[function(require,module,exports) {
-"use strict";
-
-var __extends = this && this.__extends || function () {
-  var _extendStatics = function extendStatics(d, b) {
-    _extendStatics = Object.setPrototypeOf || {
-      __proto__: []
-    } instanceof Array && function (d, b) {
-      d.__proto__ = b;
-    } || function (d, b) {
-      for (var p in b) {
-        if (b.hasOwnProperty(p)) d[p] = b[p];
-      }
-    };
-
-    return _extendStatics(d, b);
-  };
-
-  return function (d, b) {
-    _extendStatics(d, b);
-
-    function __() {
-      this.constructor = d;
-    }
-
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-  };
-}();
-
-var __importDefault = this && this.__importDefault || function (mod) {
-  return mod && mod.__esModule ? mod : {
-    "default": mod
-  };
-};
-
-exports.__esModule = true;
-
-var GameObject_1 = __importDefault(require("./GameObject"));
-
-var setup_1 = require("./setup");
-
-var Square =
-/** @class */
-function (_super) {
-  __extends(Square, _super);
-
-  function Square(x, y, size) {
-    var _this = _super.call(this) || this;
-
-    _this.speed = 10;
-    _this.size = size;
-    _this.direction = true;
-    _this.xSign = 1;
-    _this.coordX = 0;
-    _this.coordY = y;
-    return _this;
-  }
-
-  Square.prototype.render = function () {
-    this.coordX += 10 * this.xSign;
-    var context = GameObject_1["default"].context;
-    context.clearRect(0, 0, 1440, 778);
-    context.beginPath();
-
-    if (this.coordX == setup_1.width - this.size || this.coordX == 0) {
-      // alert(this.direction);
-      this.direction = !this.direction;
-      this.xSign = this.direction ? 1 : -1;
-    }
-
-    context.rect(this.coordX, this.coordY, this.size, this.size);
-    context.fillStyle = "#0074D9";
-    context.fill();
-  };
-
-  return Square;
-}(GameObject_1["default"]);
-
-exports["default"] = Square;
-},{"./GameObject":"src/GameObject.ts","./setup":"src/setup.js"}],"src/index.ts":[function(require,module,exports) {
-"use strict";
-
-var __importDefault = this && this.__importDefault || function (mod) {
-  return mod && mod.__esModule ? mod : {
-    "default": mod
-  };
-};
-
-exports.__esModule = true; // import marioImage from "../assets/06-mario.png";
+var canvas = document.getElementById("game-area");
+var context = canvas.getContext("2d");
+GameContext_1["default"].context = context;
+var engine = new Engine_1["default"]();
+engine.start();
+canvas.addEventListener("keypress", engine.eventListener); // import marioImage from "../assets/06-mario.png";
 // context.rect(width / 2.4, heigth / 2.5, 200, 200);
 // context.fillStyle = "#808";
-// context.fill();
-// context.ellipse(250, 250, 100, 100, 0, 0, Math.PI * 2);
-// context.fillStyle = "#0074D9";
 // context.fill();
 // const drawText = (color, text, x, y) => {
 //   context.fillStyle = color;
@@ -394,20 +439,7 @@ exports.__esModule = true; // import marioImage from "../assets/06-mario.png";
 //     if (sound.volume >= 0.25) sound.volume -= 0.1;
 //   } else if (key == "Meta") sound.paused ? sound.play() : sound.pause(); //USE META SPACE NO JALA EN MAC
 // };
-
-var Engine_1 = __importDefault(require("./Engine"));
-
-var Circle_1 = __importDefault(require("./Circle"));
-
-var Square_1 = __importDefault(require("./Square")); // import Mario from "./Mario";
-
-
-var canvas = document.getElementById("game-area");
-var context = canvas.getContext("2d"); // canvas.addEventListener("keydown", move);
-
-var engine = new Engine_1["default"]([new Square_1["default"](200, 200, 250), new Circle_1["default"](0, 100, 200)]);
-engine.start();
-},{"./Engine":"src/Engine.ts","./Circle":"src/Circle.ts","./Square":"src/Square.ts"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"./GameContext":"src/GameContext.ts","./Engine":"src/Engine.ts"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -435,7 +467,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49886" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "52039" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

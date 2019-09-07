@@ -1,11 +1,18 @@
-import { width, heigth } from "../src/setup";
+import GameContext from "./GameContext";
+import Engine from "./Engine";
+
+const canvas = document.getElementById("game-area") as HTMLCanvasElement;
+const context = canvas.getContext("2d");
+GameContext.context = context;
+
+const engine = new Engine();
+engine.start();
+
+canvas.addEventListener("keypress", engine.eventListener);
+
 // import marioImage from "../assets/06-mario.png";
 // context.rect(width / 2.4, heigth / 2.5, 200, 200);
 // context.fillStyle = "#808";
-// context.fill();
-
-// context.ellipse(250, 250, 100, 100, 0, 0, Math.PI * 2);
-// context.fillStyle = "#0074D9";
 // context.fill();
 
 // const drawText = (color, text, x, y) => {
@@ -80,16 +87,3 @@ import { width, heigth } from "../src/setup";
 //     if (sound.volume >= 0.25) sound.volume -= 0.1;
 //   } else if (key == "Meta") sound.paused ? sound.play() : sound.pause(); //USE META SPACE NO JALA EN MAC
 // };
-
-import Engine from "./Engine";
-import GameObject from "./GameObject";
-import Circle from "./Circle";
-import Square from "./Square";
-// import Mario from "./Mario";
-
-const canvas = document.getElementById("game-area") as HTMLCanvasElement;
-const context: CanvasRenderingContext2D = canvas.getContext("2d");
-// canvas.addEventListener("keydown", move);
-
-const engine = new Engine([new Square(200, 200, 250), new Circle(0, 100, 200)]);
-engine.start();
